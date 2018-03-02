@@ -445,7 +445,7 @@ def get_argument(func):
 def post_argument(coro):
   @functools.wraps(coro)
   async def wrapped(self, **kwargs):
-    return await coro(self, **kwargs, **await self.request.post())
+    return await coro(self, **kwargs, **dict(await self.request.post()))
 
   return wrapped
 
