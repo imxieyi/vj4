@@ -248,7 +248,7 @@ class HomeDomainHandler(base.Handler):
       role = dudict.get(ddoc['_id'], {}).get('role', builtin.ROLE_DEFAULT)
       mask = domain.get_all_roles(ddoc).get(role, builtin.PERM_NONE)
       can_manage[ddoc['_id']] = (
-          ((builtin.PERM_EDIT_DESCRIPTION | builtin.PERM_EDIT_PERM) & mask) != 0
+          ((builtin.PERM_EDIT_DESCRIPTION | builtin.PERM_EDIT_PERM) & int(mask)) != 0
           or self.has_priv(builtin.PRIV_MANAGE_ALL_DOMAIN))
     self.render('home_domain.html', pending_ddocs=pending_ddocs, ddocs=ddocs, dudict=dudict, can_manage=can_manage)
 

@@ -267,7 +267,7 @@ class DomainPermissionHandler(base.Handler):
   @base.require_perm(builtin.PERM_EDIT_PERM)
   async def get(self):
     def bitand(a, b):
-      return a & b
+      return int(a) & int(b)
     # unmodifiable roles are not visible in UI so that we are not using get_all_roles() here
     roles = sorted(list(self.domain['roles'].keys()))
     self.render('domain_manage_permission.html', bitand=bitand, roles=roles)
