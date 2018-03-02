@@ -37,3 +37,8 @@ vj4/ui/static/locale
 .webpackStats.json
 
 !.gitkeep
+
+student_info.csv
+
+package-lock.json
+
