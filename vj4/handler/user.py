@@ -35,7 +35,7 @@ class UserSettingsMixin(object):
     else:
       return None
 
-
+'''
 @app.route('/register', 'user_register', global_route=True)
 class UserRegisterHandler(base.Handler):
   @base.require_priv(builtin.PRIV_REGISTER_USER)
@@ -87,7 +87,7 @@ class UserRegisterWithCodeHandler(base.Handler):
     await self.update_session(new_saved=False, uid=uid)
     self.json_or_redirect(self.reverse_url('domain_main'))
 
-
+'''
 @app.route('/lostpass', 'user_lostpass', global_route=True)
 class UserLostpassHandler(base.Handler):
   @base.require_priv(builtin.PRIV_REGISTER_USER)
