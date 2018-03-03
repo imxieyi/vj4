@@ -17,6 +17,8 @@ PROJECTION_PUBLIC = {'uid': 1}
 async def add(domain_id: str, owner_uid: int,
               roles=builtin.DOMAIN_SYSTEM['roles'],
               name: str=None, gravatar: str=None, bulletin: str=''):
+  if int(owner_uid) >= 0:
+    raise error.ForbiddenError()
   validator.check_domain_id(domain_id)
   validator.check_name(name)
   validator.check_bulletin(bulletin)

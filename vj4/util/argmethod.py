@@ -40,6 +40,8 @@ def invoke_by_args():
     argoffset = argcount - num_defaults
     for index, argname in enumerate(method.__code__.co_varnames[:argcount]):
       if index < argoffset:
+        if argname == 'roles':
+          continue
         subparser.add_argument(argname, type=method.__annotations__[argname])
       elif argname in method.__annotations__:
         subparser.add_argument(argname,
