@@ -4,7 +4,7 @@ import csv
 import subprocess
 
 def main():
-    accountfile = open("output.csv")
+    accountfile = open("student_info.csv")
     csvreader = csv.reader(accountfile)
     for row in csvreader:
         print(row)
