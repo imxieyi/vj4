@@ -4,6 +4,9 @@
   var Context = {{ {
     'socketUrl': socket_url,
   }|json|safe }};
+  function form_confirm(form) {
+    return confirm("Do you really want to cancel the score?!");
+  }
 </script>
 <div class="row">
   <div class="medium-9 columns">
@@ -38,7 +41,7 @@
             </form>
           </li>
           <li class="menu__item">
-            <form method="post" action="{{ reverse_url('judge_score', rid=rdoc['_id']) }}">
+            <form onsubmit="return form_confirm(this);" method="post" action="{{ reverse_url('judge_score', rid=rdoc['_id']) }}">
               <input type="hidden" name="csrf_token" value="{{ handler.csrf_token }}">
               <input type="hidden" name="score" value="0">
               <input type="hidden" name="message" value="{{ _('score canceled') }}">
