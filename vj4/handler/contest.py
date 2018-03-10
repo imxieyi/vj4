@@ -5,6 +5,7 @@ import functools
 import io
 import pytz
 import zipfile
+import logging
 from bson import objectid
 
 from vj4 import app
@@ -14,11 +15,14 @@ from vj4.model import builtin
 from vj4.model import document
 from vj4.model import record
 from vj4.model import user
+from vj4.model import fs
 from vj4.model.adaptor import discussion
 from vj4.model.adaptor import contest
 from vj4.model.adaptor import problem
 from vj4.handler import base
 from vj4.util import pagination
+
+_logger = logging.getLogger(__name__)
 
 
 def _parse_pids(pids_str):
@@ -88,9 +92,38 @@ class ContestCommonOperationMixin(object):
       raise error.ContestScoreboardHiddenError(self.domain_id, tid)
     udict, pdict = await asyncio.gather(user.get_dict([tsdoc['uid'] for tsdoc in tsdocs]),
                                         problem.get_dict(self.domain_id, tdoc['pids']))
+    for pkey in pdict:
+      p = pdict[pkey]
+      p['dataUploadTime'] = await fs.get_datetime(p['data'])
+    #_logger.error(pdict)
+    #_logger.error(tsdocs)
+    for ts in tsdocs:
+      #_logger.error(type(ts))
+      if not 'journal' in ts:
+        continue
+      journal = ts['journal']
+      ts['submit_count'] = {}
+      # Initialize counter to 0
+      for p in pdict:
+        ts['submit_count'][p] = 0
+      # Journal records all submits related to the contest
+      for j in journal:
+        p = j['pid']
+        jdoc = await record.get(j['rid'])
+        #_logger.error(pdict[p]['dataUploadTime'])
+        #_logger.error(jdoc['judge_at'])
+        # If judge time is after data upload time, add the counter
+        if jdoc['judge_at'] >= pdict[p]['dataUploadTime']:
+          ts['submit_count'][p] += 1
+        # Break if accepted, ignore submissions after AC
+        if 'detail' in ts:
+          if ts['detail'][0]['accept']:
+            break
+    #_logger.error(tsdocs)
     ranked_tsdocs = contest.RULES[tdoc['rule']].rank_func(tsdocs)
     rows = contest.RULES[tdoc['rule']].scoreboard_func(is_export, self.translate, tdoc,
                                                        ranked_tsdocs, udict, pdict)
+    #_logger.error(tdoc)
     return tdoc, rows
 
   async def verify_problems(self, pids):
@@ -331,6 +364,7 @@ class ContestScoreboardHandler(ContestMixin, base.Handler):
         (self.translate('contest_main'), self.reverse_url('contest_main')),
         (tdoc['title'], self.reverse_url('contest_detail', tid=tdoc['doc_id'])),
         (self.translate('contest_scoreboard'), None))
+    #_logger.error(rows[1])
     self.render('contest_scoreboard.html', tdoc=tdoc, rows=rows, path_components=path_components)
 
 

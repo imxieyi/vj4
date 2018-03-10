@@ -2,6 +2,7 @@ import collections
 import datetime
 import functools
 import itertools
+import logging
 
 from bson import objectid
 from pymongo import errors
@@ -9,10 +10,13 @@ from pymongo import errors
 from vj4 import constant
 from vj4 import error
 from vj4.model import document
+from vj4.model import record
 from vj4.util import argmethod
 from vj4.util import misc
 from vj4.util import rank
 from vj4.util import validator
+
+_logger = logging.getLogger(__name__)
 
 
 journal_key_func = lambda j: j['rid']
@@ -96,6 +100,8 @@ def _oi_scoreboard(is_export, _, tdoc, ranked_tsdocs, udict, pdict):
     else:
       columns.append({'type': 'problem_detail',
                       'value': '#{0}'.format(index + 1), 'raw': pdict[pid]})
+      columns.append({'type': 'problem_submit',
+                      'value': _('Submit Count')})
   rows = [columns]
   for rank, tsdoc in ranked_tsdocs:
     if 'detail' in tsdoc:
@@ -111,6 +117,8 @@ def _oi_scoreboard(is_export, _, tdoc, ranked_tsdocs, udict, pdict):
       row.append({'type': 'record',
                   'value': tsddict.get(pid, {}).get('score', '-'),
                   'raw': tsddict.get(pid, {}).get('rid', None)})
+      row.append({'type': 'record',
+                  'value': tsdoc.get('submit_count', {}).get(pid, '0')})
     rows.append(row)
   return rows
 
@@ -331,6 +339,11 @@ async def get_and_list_status(domain_id: str, tid: objectid.ObjectId, fields=Non
                                            fields=fields) \
                          .sort(RULES[tdoc['rule']].status_sort) \
                          .to_list()
+  #_logger.error(tsdocs)
+  for tsdoc in tsdocs:
+    if not 'detail' in tsdoc:
+      continue
+    tsdoc['record'] = await record.get(record_id=tsdoc['detail'][0]['rid'])
   return tdoc, tsdocs
 
 
