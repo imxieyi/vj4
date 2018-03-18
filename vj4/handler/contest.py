@@ -116,9 +116,8 @@ class ContestCommonOperationMixin(object):
         if jdoc['judge_at'] >= pdict[p]['dataUploadTime']:
           ts['submit_count'][p] += 1
         # Break if accepted, ignore submissions after AC
-        if 'detail' in ts:
-          if ts['detail'][0]['accept']:
-            break
+        if jdoc['status'] == 1:
+          break
     #_logger.error(tsdocs)
     ranked_tsdocs = contest.RULES[tdoc['rule']].rank_func(tsdocs)
     rows = contest.RULES[tdoc['rule']].scoreboard_func(is_export, self.translate, tdoc,
