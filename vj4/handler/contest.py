@@ -102,28 +102,53 @@ class ContestCommonOperationMixin(object):
       if not 'journal' in ts:
         continue
       journal = ts['journal']
-      ts['submit_count'] = {}
+      ts['submit_count_highest'] = {}
+      ts['submit_count_total'] = {}
+      ts['highest_score'] = {}
+      ts['highest_score_rid'] = {}
+      ts['highest_penalized_score'] = {}
+      ts['highest_penalized_score_rid'] = {}
       # Initialize counter to 0
       for p in pdict:
-        ts['submit_count'][p] = 0
+        ts['submit_count_total'][p] = 0
+        ts['highest_score'][p] = 0
+        ts['highest_penalized_score'][p] = 0
       # Journal records all submissions related to the contest
       jdocs = []
       for j in journal:
         jdocs.append(await record.get(j['rid']))
       jdocs = sorted(jdocs, key=lambda k: k['judge_at'])
+      #if ts['uid'] == -3:
+      #  _logger.error(jdocs)
       for jdoc in jdocs:
         p = jdoc['pid']
+        #_logger.error(p)
         #_logger.error(jdoc['_id'])
         #_logger.error(pdict[p]['dataUploadTime'])
         #_logger.error(jdoc['judge_at'])
         # If judge time is after data upload time, add the counter
         if jdoc['judge_at'] >= pdict[p]['dataUploadTime']:
           #_logger.error('gg')
-          ts['submit_count'][p] += 1
-          # Break if accepted, ignore submissions after AC
-          if jdoc['status'] == 1:
-            break
-    #_logger.error(tsdocs)
+          penalized_score = jdoc['score'] - ts['submit_count_total'][p] * builtin.RULE_PENALTY_SCORE_PER_SUBMISSION
+          if penalized_score < 0:
+            penalized_score = 0
+          ts['submit_count_total'][p] += 1
+          if penalized_score > ts['highest_penalized_score'][p]:
+            ts['highest_penalized_score'][p] = penalized_score
+            ts['highest_penalized_score_rid'][p] = jdoc['_id']
+          if ts['highest_score'][p] < jdoc['score']:
+            #if ts['uid'] == -3:
+            #  _logger.error(highest)
+            #  _logger.error(jdoc['score'])
+            ts['highest_score'][p] = jdoc['score']
+            ts['submit_count_highest'][p] = ts['submit_count_total'][p]
+            ts['highest_score_rid'][p] = jdoc['_id']
+      sum_score = 0
+      for p in pdict:
+        sum_score += ts['highest_penalized_score'][p]
+      ts['sum_score'] = sum_score
+    tsdocs = sorted(tsdocs, key=lambda k: k.get('sum_score', 0), reverse=True)
+    #_logger.error([ts['highest_penalized_score'] for ts in tsdocs])
     ranked_tsdocs = contest.RULES[tdoc['rule']].rank_func(tsdocs)
     rows = contest.RULES[tdoc['rule']].scoreboard_func(is_export, self.translate, tdoc,
                                                        ranked_tsdocs, udict, pdict)

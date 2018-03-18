@@ -85,7 +85,7 @@ def _assignment_stat(tdoc, journal):
 
 
 def _oi_equ_func(a, b):
-  return a.get('score', 0) == b.get('score', 0)
+  return a.get('sum_score', 0) == b.get('sum_score', 0)
 
 
 def _oi_scoreboard(is_export, _, tdoc, ranked_tsdocs, udict, pdict):
@@ -100,26 +100,29 @@ def _oi_scoreboard(is_export, _, tdoc, ranked_tsdocs, udict, pdict):
     else:
       columns.append({'type': 'problem_detail',
                       'value': '#{0}'.format(index + 1), 'raw': pdict[pid]})
-      columns.append({'type': 'problem_submit',
-                      'value': _('Submit Count')})
+    columns.append({'type': 'problem_submit',
+                    'value': _('Submit Count(Highest/Total)')})
+    columns.append({'type': 'problem_submit',
+                    'value': _('Penalized Score')})
   rows = [columns]
   for rank, tsdoc in ranked_tsdocs:
-    if 'detail' in tsdoc:
-      tsddict = {item['pid']: item for item in tsdoc['detail']}
-    else:
-      tsddict = {}
+    tsddict = tsdoc.get('highest_score_rid', {})
     row = []
     row.append({'type': 'string', 'value': rank})
     row.append({'type': 'user',
                 'value': udict[tsdoc['uid']]['uname'], 'raw': udict[tsdoc['uid']]})
-    row.append({'type': 'string', 'value': tsdoc.get('score', 0)})
+    row.append({'type': 'string', 'value': tsdoc.get('sum_score', 0)})
     for pid in tdoc['pids']:
       row.append({'type': 'record',
-                  'value': tsddict.get(pid, {}).get('score', '-'),
-                  'raw': tsddict.get(pid, {}).get('rid', None)})
+                  'value': tsdoc.get('highest_score', {}).get(pid, '0'),
+                  'raw': tsddict.get(pid, None)})
       row.append({'type': 'record',
-                  'value': tsdoc.get('submit_count', {}).get(pid, '0')})
+                  'value': '{0}/{1}'.format(tsdoc.get('submit_count_highest', {}).get(pid, '0'), tsdoc.get('submit_count_total', {}).get(pid, '0'))})
+      row.append({'type': 'record',
+                  'value': tsdoc.get('highest_penalized_score', {}).get(pid, '0'),
+                  'raw': tsdoc.get('highest_penalized_score_rid', {}).get(pid, None)})
     rows.append(row)
+  #_logger.error(rows[1])
   return rows
 
 

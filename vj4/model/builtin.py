@@ -6,6 +6,9 @@ import itertools
 from vj4 import constant
 from vj4.util import version
 
+# Contest rule
+RULE_PENALTY_SCORE_PER_SUBMISSION = 5
+
 # Permissions.
 PERM_NONE = 0
 
