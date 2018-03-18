@@ -106,18 +106,23 @@ class ContestCommonOperationMixin(object):
       # Initialize counter to 0
       for p in pdict:
         ts['submit_count'][p] = 0
-      # Journal records all submits related to the contest
+      # Journal records all submissions related to the contest
+      jdocs = []
       for j in journal:
-        p = j['pid']
-        jdoc = await record.get(j['rid'])
+        jdocs.append(await record.get(j['rid']))
+      jdocs = sorted(jdocs, key=lambda k: k['judge_at'])
+      for jdoc in jdocs:
+        p = jdoc['pid']
+        #_logger.error(jdoc['_id'])
         #_logger.error(pdict[p]['dataUploadTime'])
         #_logger.error(jdoc['judge_at'])
         # If judge time is after data upload time, add the counter
         if jdoc['judge_at'] >= pdict[p]['dataUploadTime']:
+          #_logger.error('gg')
           ts['submit_count'][p] += 1
-        # Break if accepted, ignore submissions after AC
-        if jdoc['status'] == 1:
-          break
+          # Break if accepted, ignore submissions after AC
+          if jdoc['status'] == 1:
+            break
     #_logger.error(tsdocs)
     ranked_tsdocs = contest.RULES[tdoc['rule']].rank_func(tsdocs)
     rows = contest.RULES[tdoc['rule']].scoreboard_func(is_export, self.translate, tdoc,
