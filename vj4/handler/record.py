@@ -3,6 +3,7 @@ import calendar
 import datetime
 import struct
 import urllib.parse
+import logging
 from bson import objectid
 
 from vj4 import app
@@ -20,6 +21,8 @@ from vj4.model.adaptor import contest
 from vj4.model.adaptor import problem
 from vj4.service import bus
 from vj4.util import options
+
+_logger = logging.getLogger(__name__)
 
 
 class RecordVisibilityMixin(contest_handler.ContestVisibilityMixin):
@@ -90,6 +93,7 @@ class RecordMainHandler(RecordMixin, base.Handler):
     url_prefix = '/d/{}'.format(urllib.parse.quote(self.domain_id))
     query_string = urllib.parse.urlencode(
       [('uid_or_name', uid_or_name), ('pid', pid), ('tid', tid)])
+    #_logger.error(self.has_perm(builtin.PERM_REJUDGE))
     self.render('record_main.html', rdocs=rdocs, udict=udict, pdict=pdict, statistics=statistics,
                 filter_uid_or_name=uid_or_name, filter_pid=pid, filter_tid=tid,
                 socket_url=url_prefix + '/records-conn?' + query_string, # FIXME(twd2): magic
