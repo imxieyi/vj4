@@ -60,7 +60,7 @@ class RecordMainHandler(RecordMixin, base.Handler):
   @base.get_argument
   @base.sanitize
   async def get(self, *, start: str='', uid_or_name: str='', pid: str='', tid: str=''):
-    if not self.has_priv(builtin.PRIV_VIEW_JUDGE_STATISTICS):
+    if not self.has_perm(builtin.PERM_REJUDGE):
       start = ''
     if start:
       start = objectid.ObjectId(start)
