@@ -117,7 +117,7 @@ class ContestCommonOperationMixin(object):
       jdocs = []
       for j in journal:
         jdocs.append(await record.get(j['rid']))
-      jdocs = sorted(jdocs, key=lambda k: k['judge_at'])
+      #jdocs = sorted(jdocs, key=lambda k: k['judge_at'])
       #if ts['uid'] == -3:
       #  _logger.error(jdocs)
       for jdoc in jdocs:
