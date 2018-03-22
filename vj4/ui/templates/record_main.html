@@ -19,23 +19,26 @@
         <div class="section__body">
           <div class="row">
             <!-- TODO: replace with form_builder -->
-            <div class="medium-4 columns">
+            <div class="medium-3 columns">
               <label class="filter-user">
                 {{ _('By Username / UID') }}
                 <input name="uid_or_name" type="text" class="textbox" value="{{ filter_uid_or_name }}" autocomplete="off" data-autofocus>
               </label>
             </div>
-            <div class="medium-4 columns">
+            <div class="medium-3 columns">
               <label>
                 {{ _('By Problem') }}
                 <input name="pid" type="text" class="textbox" value="{{ filter_pid }}">
               </label>
             </div>
-            <div class="medium-4 columns">
+            <div class="medium-3 columns">
               <label>
                 {{ _('By Contest') }}
                 <input name="tid" type="text" class="textbox" value="{{ filter_tid }}">
               </label>
+            </div>
+            <div class="medium-3 columns">
+              {{ form.form_checkbox(label='Exclude Pretest', name='nopretest', value= filter_nopretest ) }}
             </div>
           </div>
         </div>
