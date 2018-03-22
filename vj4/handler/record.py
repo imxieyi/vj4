@@ -226,16 +226,16 @@ class RecordRejudgeHandler(base.Handler):
     self.json_or_redirect(self.referer_or_main)
 
 
-@app.route('/records/{rid}/data', 'record_nopretest_data')
-class RecordnopretestDataHandler(base.Handler):
+@app.route('/records/{rid}/data', 'record_pretest_data')
+class RecordPretestDataHandler(base.Handler):
   @base.route_argument
   @base.sanitize
   async def get(self, *, rid: objectid.ObjectId):
     rdoc = await record.get(rid)
-    if not rdoc or rdoc['type'] != constant.record.TYPE_nopretest:
+    if not rdoc or rdoc['type'] != constant.record.TYPE_PRETEST:
       raise error.RecordNotFoundError(rid)
-    if not self.own(rdoc, builtin.PRIV_READ_nopretest_DATA_SELF, 'uid'):
-      self.check_priv(builtin.PRIV_READ_nopretest_DATA)
+    if not self.own(rdoc, builtin.PRIV_READ_PRETEST_DATA_SELF, 'uid'):
+      self.check_priv(builtin.PRIV_READ_PRETEST_DATA)
     if not rdoc.get('data_id'):
       raise error.RecordDataNotFoundError(rdoc['_id'])
     secret = await fs.get_secret(rdoc['data_id'])
