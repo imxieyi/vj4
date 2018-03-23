@@ -189,8 +189,8 @@ class UserDetailHandler(base.Handler, UserSettingsMixin):
                                        token.get_most_recent_session_by_uid(udoc['_id']))
 
     rdocs = record.get_multi(get_hidden=True,
-                             uid=uid).sort([('_id', -1)])
-    rdocs = await rdocs.limit(10).to_list()
+                             uid=uid, data_id=None).sort([('_id', -1)])
+    rdocs = await rdocs.limit(50).to_list()
     pdict = await problem.get_dict_multi_domain((rdoc['domain_id'], rdoc['pid']) for rdoc in rdocs)
 
     # check hidden problem
