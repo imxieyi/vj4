@@ -91,6 +91,8 @@ def _oi_equ_func(a, b):
 def _oi_scoreboard(is_export, _, tdoc, ranked_tsdocs, udict, pdict):
   columns = []
   columns.append({'type': 'rank', 'value': _('Rank')})
+  if is_export:
+    columns.append({'type': 'userid', 'value': _('User ID')})
   columns.append({'type': 'user', 'value': _('User')})
   columns.append({'type': 'total_score', 'value': _('Total Score')})
   for index, pid in enumerate(tdoc['pids']):
@@ -109,6 +111,9 @@ def _oi_scoreboard(is_export, _, tdoc, ranked_tsdocs, udict, pdict):
     tsddict = tsdoc.get('highest_score_rid', {})
     row = []
     row.append({'type': 'string', 'value': rank})
+    if is_export:
+      row.append({'type': 'userid',
+                  'value': tsdoc['uid'], 'raw': udict[tsdoc['uid']]})
     row.append({'type': 'user',
                 'value': udict[tsdoc['uid']]['uname'], 'raw': udict[tsdoc['uid']]})
     row.append({'type': 'string', 'value': tsdoc.get('sum_score', 0)})
