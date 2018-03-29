@@ -267,13 +267,13 @@ class ContestCodeHandler(base.OperationHandler):
     tdoc, tsdocs = await contest.get_and_list_status(self.domain_id, tid)
     rnames = {}
     for tsdoc in tsdocs:
-      for pdetail in tsdoc.get('detail', []):
-        rnames[pdetail['rid']] = 'U{}_P{}_R{}'.format(tsdoc['uid'], pdetail['pid'], pdetail['rid'])
+      for pdetail in tsdoc.get('journal', []):
+        rnames[pdetail['rid']] = 'S{}_R{}'.format(pdetail['score'], pdetail['rid'])
     output_buffer = io.BytesIO()
     zip_file = zipfile.ZipFile(output_buffer, 'a', zipfile.ZIP_DEFLATED)
     rdocs = record.get_multi(get_hidden=True, _id={'$in': list(rnames.keys())})
     async for rdoc in rdocs:
-      zip_file.writestr(rnames[rdoc['_id']] + '.' + rdoc['lang'], rdoc['code'])
+      zip_file.writestr(str(rdoc['pid']) + '/' + str(rdoc['uid']) + '/' + rnames[rdoc['_id']] + '.' + rdoc['lang'], rdoc['code'])
     # mark all files as created in Windows :p
     for zfile in zip_file.filelist:
       zfile.create_system = 0
