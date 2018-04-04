@@ -62,8 +62,8 @@ const mapDispatchToProps = dispatch => ({
       payload: req,
     });
   },
-  postSubmit(context) {
-    const action = new ConfirmDialog({
+  postSubmit: async (context) => {
+    const action = await new ConfirmDialog({
       $body: tpl`
         <div class="typo">
           <p>${i18n('Really want to submit?')}</p>
