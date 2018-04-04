@@ -2,6 +2,7 @@ import asyncio
 import collections
 import datetime
 import functools
+import logging
 
 from vj4 import app
 from vj4 import constant
@@ -16,6 +17,7 @@ from vj4.handler import base
 import vj4.handler.training
 from vj4.util import validator
 
+_logger = logging.getLogger(__name__)
 
 @app.route('/', 'domain_main')
 class DomainMainHandler(base.Handler, vj4.handler.training.TrainingMixin):
@@ -28,6 +30,7 @@ class DomainMainHandler(base.Handler, vj4.handler.training.TrainingMixin):
       tdocs = await contest.get_multi(self.domain_id) \
                            .limit(self.CONTESTS_ON_MAIN) \
                            .to_list()
+      tdocs = [t for t in tdocs if t['end_at'] >= datetime.datetime.utcnow()]
       tsdict = await contest.get_dict_status(self.domain_id, self.user['_id'],
                                              (tdoc['doc_id'] for tdoc in tdocs))
     else:
