@@ -3,6 +3,8 @@ import React from 'react';
 import { connect } from 'react-redux';
 
 import i18n from 'vj/utils/i18n';
+import tpl from 'vj/utils/tpl';
+import { ConfirmDialog } from 'vj/components/dialog';
 import request from 'vj/utils/request';
 import * as languageEnum from 'vj/constant/language';
 import Icon from 'vj/components/react/IconComponent';
@@ -61,6 +63,15 @@ const mapDispatchToProps = dispatch => ({
     });
   },
   postSubmit(context) {
+    const action = new ConfirmDialog({
+      $body: tpl`
+        <div class="typo">
+          <p>${i18n('Confirm to submit the answer?')}</p>
+        </div>`,
+    }).open();
+    if (action !== 'yes') {
+      return;
+    }
     const state = context.store.getState();
     const req = request.post(Context.postSubmitUrl, {
       lang: state.editor.lang,
