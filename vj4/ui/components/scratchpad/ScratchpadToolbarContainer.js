@@ -66,7 +66,7 @@ const mapDispatchToProps = dispatch => ({
     const action = new ConfirmDialog({
       $body: tpl`
         <div class="typo">
-          <p>${i18n('Confirm to submit the answer?')}</p>
+          <p>${i18n('Really want to submit?')}</p>
         </div>`,
     }).open();
     if (action !== 'yes') {
