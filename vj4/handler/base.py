@@ -172,7 +172,9 @@ class HandlerBase(setting.SettingMixin):
 
   @property
   def remote_ip(self):
-    if options.ip_header:
+    if self.request.headers.get('X-Real-IP') is not None:
+        return self.request.headers.get('X-Real-IP')
+    elif options.ip_header:
       return self.request.headers.get(options.ip_header)
     else:
       return self.request.transport.get_extra_info('peername')[0]
