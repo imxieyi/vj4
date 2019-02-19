@@ -10,6 +10,7 @@ options.define('db_port', default=27017, help='Database port.')
 options.define('db_username', default='', help='Database username.')
 options.define('db_password', default='', help='Database password.')
 options.define('db_auth_source', default='',
+               help='Database name associated with the user\'s credential.')
 
 
 async def init():
