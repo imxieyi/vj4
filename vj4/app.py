@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import logging
 from os import path
 
@@ -12,7 +13,6 @@ from vj4.service import bus
 from vj4.service import smallcache
 from vj4.service import staticmanifest
 from vj4.util import json
-from vj4.util import locale
 from vj4.util import options
 from vj4.util import tools
 
@@ -43,11 +43,9 @@ class Application(web.Application):
     globals()[self.__class__.__name__] = lambda: self  # singleton
 
     static_path = path.join(path.dirname(__file__), '.uibuild')
-    translation_path = path.join(path.dirname(__file__), 'locale')
 
     # Initialize components.
     staticmanifest.init(static_path)
-    locale.load_translations(translation_path)
     loop = asyncio.get_event_loop()
     loop.run_until_complete(db.init())
     loop.run_until_complete(system.setup())
@@ -102,11 +100,10 @@ def connection_route(prefix, name, global_route=False):
         session.close(4000, {'error': e.to_dict()})
 
     class Manager(sockjs.SessionManager):
-      def get(self, id, create=False, request=None):
-        if id not in self and create:
-          self[id] = self._add(conn(request, id, self.handler,
-                                    timeout=self.timeout, loop=self.loop, debug=self.debug))
-        return self[id]
+      def __init__(self, *args):
+        super(Manager, self).__init__(*args)
+        self.factory = conn
+        self.timeout = datetime.timedelta(seconds=60)
 
     loop = asyncio.get_event_loop()
     sockjs.add_endpoint(Application(), handler, name=name, prefix=prefix,

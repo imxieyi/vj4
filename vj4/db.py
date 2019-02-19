@@ -1,16 +1,32 @@
 import aiomongo
 import functools
+import yarl
 
 from vj4.util import options
 
-options.define('db_host', default='172.111.0.3', help='Database hostname or IP address.')
+options.define('db_host', default='127.0.0.1', help='Database hostname or IP address.')
 options.define('db_name', default='mongo', help='Database name.')
+options.define('db_port', default=27017, help='Database port.')
+options.define('db_username', default='', help='Database username.')
+options.define('db_password', default='', help='Database password.')
+options.define('db_auth_source', default='',
 
 
 async def init():
   global _client, _db
-  _client = await aiomongo.create_client('mongodb://' + options.db_host)
-  _db = _client.get_database(options.db_name)
+
+  query = dict()
+  if options.db_auth_source:
+    query['authSource'] = options.db_auth_source
+  url = yarl.URL.build(scheme='mongodb',
+                       host=options.db_host,
+                       path='/' + options.db_name,
+                       port=options.db_port,
+                       user=options.db_username,
+                       password=options.db_password,
+                       query=query)
+  _client = await aiomongo.create_client(str(url))
+  _db = _client.get_default_database()
 
 
 @functools.lru_cache()

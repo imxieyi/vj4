@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  Next generation of <a href="https://vijos.org" target="_blank">Vijos</a>, built with asyncio on Python 3.5.
+  Next generation of <a href="https://vijos.org" target="_blank">Vijos</a>, built with asyncio on Python 3.
 </p>
 
 ***
@@ -33,14 +33,22 @@
 - Secure (we are also CTF players)
 - Modern Architecture & User Interface
 
-## Prerequisites
+## Usage
 
-* [Python 3.5+](https://www.python.org/downloads/)
+### Pre-built docker package
+
+There is pre-built docker package at `vijos/vj4`. This is maintained by [@moesoha](https://github.com/moesoha). Source code is available at https://github.com/vijos/vj4-docker.
+
+### Manual build
+
+#### Prerequisites
+
+* [Python 3.5.3+](https://www.python.org/downloads/)
 * [MongoDB 3.0+](https://docs.mongodb.org/manual/installation/)
 * [Node.js 6.0+](https://nodejs.org/en/download/package-manager/)
 * [RabbitMQ](http://www.rabbitmq.com/)
 
-## Install requirements
+#### Install requirements
 
 In the root of the repository, where `requirements.txt` and `package.json` locates:
 
@@ -54,15 +62,15 @@ You don't need root privilege to run `npm install`. It installs stuffs in the pr
 You may want to use [cnpm](https://npm.taobao.org/) and [tuna](https://pypi.tuna.tsinghua.edu.cn/)
 if you are in China. Make sure to use `cnpm` by adding `alias` to `npm` instead of installing cnpm cli-tool.
 
-Some requirements may need `Python.h`. In Ubuntu/Debian simply use
+Some requirements may need `Python.h`. In Debian/Ubuntu you can use
 
 ```bash
 apt install python3-dev
 ```
 
-to solve the problem.
+to resolve this.
 
-### IP Geo-Location
+#### IP Geo-Location
 
 To enable IP geo-location translation, you need to obtain a [MaxMind GeoLite City DB](http://dev.maxmind.com/geoip/geoip2/geolite2/) and put it in the project root directory:
 

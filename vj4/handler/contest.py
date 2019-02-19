@@ -15,7 +15,7 @@ from vj4.model import builtin
 from vj4.model import document
 from vj4.model import record
 from vj4.model import user
-from vj4.model import fs
+from vj4.model import domain
 from vj4.model.adaptor import discussion
 from vj4.model.adaptor import contest
 from vj4.model.adaptor import problem
@@ -90,8 +90,10 @@ class ContestCommonOperationMixin(object):
     tdoc, tsdocs = await contest.get_and_list_status(self.domain_id, tid)
     if not self.can_show_scoreboard(tdoc):
       raise error.ContestScoreboardHiddenError(self.domain_id, tid)
-    udict, pdict = await asyncio.gather(user.get_dict([tsdoc['uid'] for tsdoc in tsdocs]),
-                                        problem.get_dict(self.domain_id, tdoc['pids']))
+    udict, dudict, pdict = await asyncio.gather(
+        user.get_dict([tsdoc['uid'] for tsdoc in tsdocs]),
+        domain.get_dict_user_by_uid(self.domain_id, [tsdoc['uid'] for tsdoc in tsdocs]),
+        problem.get_dict(self.domain_id, tdoc['pids']))
     for pkey in pdict:
       p = pdict[pkey]
       p['dataUploadTime'] = await fs.get_datetime(p['data'])
@@ -152,9 +154,9 @@ class ContestCommonOperationMixin(object):
     #_logger.error([ts['highest_penalized_score'] for ts in tsdocs])
     ranked_tsdocs = contest.RULES[tdoc['rule']].rank_func(tsdocs)
     rows = contest.RULES[tdoc['rule']].scoreboard_func(is_export, self.translate, tdoc,
-                                                       ranked_tsdocs, udict, pdict)
+                                                       ranked_tsdocs, udict, dudict, pdict)
     #_logger.error(tdoc)
-    return tdoc, rows
+    return tdoc, rows, udict
 
   async def verify_problems(self, pids):
     pdocs = await problem.get_multi(domain_id=self.domain_id, doc_id={'$in': pids},
@@ -234,11 +236,12 @@ class ContestDetailHandler(ContestMixin, base.OperationHandler):
     uids = set(ddoc['owner_uid'] for ddoc in ddocs)
     uids.add(tdoc['owner_uid'])
     udict = await user.get_dict(uids)
+    dudict = await domain.get_dict_user_by_uid(domain_id=self.domain_id, uids=uids)
     path_components = self.build_path(
         (self.translate('contest_main'), self.reverse_url('contest_main')),
         (tdoc['title'], None))
     self.render('contest_detail.html', tdoc=tdoc, tsdoc=tsdoc, attended=attended, udict=udict,
-                pdict=pdict, psdict=psdict, rdict=rdict,
+                dudict=dudict, pdict=pdict, psdict=psdict, rdict=rdict,
                 ddocs=ddocs, page=page, dpcount=dpcount, dcount=dcount,
                 datetime_stamp=self.datetime_stamp,
                 page_title=tdoc['title'], path_components=path_components)
@@ -293,9 +296,10 @@ class ContestDetailProblemHandler(ContestMixin, base.Handler):
     uid = self.user['_id'] if self.has_priv(builtin.PRIV_USER_PROFILE) else None
     tdoc, pdoc = await asyncio.gather(contest.get(self.domain_id, tid),
                                       problem.get(self.domain_id, pid, uid))
-    tsdoc, udoc = await asyncio.gather(
+    tsdoc, udoc, dudoc = await asyncio.gather(
         contest.get_status(self.domain_id, tdoc['doc_id'], self.user['_id']),
-        user.get_by_uid(tdoc['owner_uid']))
+        user.get_by_uid(tdoc['owner_uid']),
+        domain.get_user(domain_id=self.domain_id, uid=tdoc['owner_uid']))
     attended = tsdoc and tsdoc.get('attend') == 1
     if not self.is_done(tdoc):
       if not attended:
@@ -309,7 +313,7 @@ class ContestDetailProblemHandler(ContestMixin, base.Handler):
         (tdoc['title'], self.reverse_url('contest_detail', tid=tid)),
         (pdoc['title'], None))
     self.render('problem_detail.html', tdoc=tdoc, pdoc=pdoc, tsdoc=tsdoc, udoc=udoc,
-                attended=attended,
+                attended=attended, dudoc=dudoc,
                 page_title=pdoc['title'], path_components=path_components)
 
 
@@ -389,13 +393,14 @@ class ContestScoreboardHandler(ContestMixin, base.Handler):
   @base.route_argument
   @base.sanitize
   async def get(self, *, tid: objectid.ObjectId):
-    tdoc, rows = await self.get_scoreboard(tid)
+    tdoc, rows, udict = await self.get_scoreboard(tid)
     path_components = self.build_path(
         (self.translate('contest_main'), self.reverse_url('contest_main')),
         (tdoc['title'], self.reverse_url('contest_detail', tid=tdoc['doc_id'])),
         (self.translate('contest_scoreboard'), None))
+    dudict = await domain.get_dict_user_by_uid(domain_id=self.domain_id, uids=udict.keys())
     #_logger.error(rows[1])
-    self.render('contest_scoreboard.html', tdoc=tdoc, rows=rows, path_components=path_components)
+    self.render('contest_scoreboard.html', tdoc=tdoc, rows=rows, dudict=dudict, path_components=path_components)
 
 
 @app.route('/contest/{tid}/scoreboard/download/{ext}', 'contest_scoreboard_download')
@@ -420,7 +425,7 @@ class ContestScoreboardDownloadHandler(ContestMixin, base.Handler):
     }
     if ext not in get_status_content:
       raise error.ValidationError('ext')
-    tdoc, rows = await self.get_scoreboard(tid, True)
+    tdoc, rows, udict = await self.get_scoreboard(tid, True)
     data = get_status_content[ext](rows)
     file_name = tdoc['title']
     await self.binary(data, file_name='{}.{}'.format(file_name, ext))
