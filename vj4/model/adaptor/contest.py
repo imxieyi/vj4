@@ -94,7 +94,7 @@ def _oi_scoreboard(is_export, _, tdoc, ranked_tsdocs, udict, dudict, pdict):
   if is_export:
     columns.append({'type': 'userid', 'value': _('User ID')})
   columns.append({'type': 'user', 'value': _('User')})
-  columns.append({'type': 'display_name', 'value': _('Display Name')})
+  #columns.append({'type': 'display_name', 'value': _('Display Name')})
   columns.append({'type': 'total_score', 'value': _('Total Score')})
   for index, pid in enumerate(tdoc['pids']):
     if is_export:
